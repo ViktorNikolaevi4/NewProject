@@ -22,7 +22,6 @@ class Task: Identifiable {
     }
 }
 
-
 @Model
 class Category: Identifiable {
     @Attribute(.unique) var id: UUID = UUID()
@@ -39,15 +38,15 @@ struct CategoryListView: View {
     @Query private var categories: [Category]
     @Environment(\.modelContext) private var modelContext
 
-    @State private var newCategoryName: String = ""
+    @State private var newCategoryName = ""
 
     var body: some View {
         NavigationStack {
             VStack {
                 HStack {
-                    TextField("Новая категория", text: $newCategoryName)
+                    TextField("New Category", text: $newCategoryName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                    Button("Добавить") {
+                    Button("Add") {
                         addCategory()
                     }
                 }
@@ -59,27 +58,25 @@ struct CategoryListView: View {
                             HStack {
                                 Text(category.name)
                                 Spacer()
-                                Text("\(category.tasks.count) задач")
-                                    .foregroundColor(.secondary)
+                                Text("\(category.tasks.count) tasks")
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
                     .onDelete(perform: deleteCategories)
                 }
             }
-            .navigationTitle("Категории")
+            .navigationTitle("Category")
         }
     }
-
-    func addCategory() {
+    private func addCategory() {
         guard !newCategoryName.isEmpty else { return }
         let newCategory = Category(name: newCategoryName)
         modelContext.insert(newCategory)
         try? modelContext.save()
         newCategoryName = ""
     }
-
-    func deleteCategories(at offsets: IndexSet) {
+    private func deleteCategories(att offsets: IndexSet) {
         for index in offsets {
             let category = categories[index]
             modelContext.delete(category)
@@ -93,14 +90,14 @@ struct TaskListView: View {
 
     @Query private var tasks: [Task]
 
-    let category: Category
-
     @State private var newTitle = ""
+
+    let category: Category
 
     init(category: Category) {
         self.category = category
         let categoryID = category.id
-        _tasks = Query(filter: #Predicate<Task> { task in
+        self._tasks = Query(filter: #Predicate<Task> { task in
             task.category?.id == categoryID
         })
     }
@@ -110,7 +107,6 @@ struct TaskListView: View {
             HStack {
                 TextField("Новая задача", text: $newTitle)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-
                 Button("Добавить") {
                     addTask()
                 }
@@ -122,7 +118,6 @@ struct TaskListView: View {
                     VStack(alignment: .leading) {
                         Text(task.title)
                             .font(.headline)
-
                         if let date = task.dueDate {
                             Text(date, style: .date)
                                 .font(.caption)
